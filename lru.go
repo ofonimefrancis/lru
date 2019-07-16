@@ -5,6 +5,7 @@ import (
 	"sync"
 )
 
+//Cache Represents our LRU Cache
 type Cache struct {
 	mu       sync.Mutex
 	cache    map[string]*list.Element
@@ -34,17 +35,15 @@ func (c *Cache) Add(key string, value interface{}) {
 	defer c.mu.Unlock()
 
 	//Check if the entry is already in the cache
-	//If true, we move the entry to the front bcos it has been accessed
 	if element, ok := c.cache[key]; ok {
 		c.dll.MoveToFront(element)
 		element.Value.(*entry).value = value
 		return
 	}
-	//Else we just add the new entry element to the cache
+
 	e := c.dll.PushFront(&entry{key: key, value: value})
 	c.cache[key] = e
 
-	//Remove the least used, if we exceed the capacity and since capacity is not enforced on the linked list
 	if c.dll.Len() > c.capacity && c.capacity > 0 {
 		c.removeLeastUsed()
 	}
@@ -52,7 +51,6 @@ func (c *Cache) Add(key string, value interface{}) {
 
 func (c *Cache) removeLeastUsed() (string, interface{}) {
 	el := c.dll.Back()
-	//List is empty
 	if el == nil {
 		return "", el
 	}
@@ -62,6 +60,14 @@ func (c *Cache) removeLeastUsed() (string, interface{}) {
 	return value.key, value.value
 }
 
-func (c *Cache) Get() {
+//Get - Retrieves a key from the cache
+func (c *Cache) Get(key string) (interface{}, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
+	if element, ok := c.cache[key]; ok {
+		c.dll.MoveToFront(element)
+		return element.Value.(*entry), ok
+	}
+	return nil, false
 }
