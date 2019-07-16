@@ -65,9 +65,45 @@ func (c *Cache) Get(key string) (interface{}, bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if element, ok := c.cache[key]; ok {
+	if element, ok := c.contains(key); ok {
 		c.dll.MoveToFront(element)
 		return element.Value.(*entry), ok
 	}
 	return nil, false
+}
+
+//Remove Removes an entry
+func (c *Cache) Remove(key string) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if el, ok := c.cache[key]; ok {
+		c.dll.Remove(el)
+		val := el.Value.(*entry)
+		delete(c.cache, val.key)
+		return true
+	}
+	return false
+}
+
+//Len Returns the length of the items in the cache
+func (c *Cache) Len() int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.dll.Len()
+}
+
+//contains - Checks for the availability of a key in cache
+//Returns the element and the boolean signifying availability
+func (c *Cache) contains(key string) (*list.Element, bool) {
+	entry, ok := c.cache[key]
+	return entry, ok
+
+}
+
+//Contains - Checks for the availability of a key in cache
+func (c *Cache) Contains(key string) bool {
+	_, ok := c.cache[key]
+	return ok
 }
