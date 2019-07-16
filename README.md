@@ -1,14 +1,19 @@
-#  lru
+lru
+=========
+
+
 An LRU Cache Safe for concurrent access
 
 This is a simple implementation of an LRU cache in Go. 
 Concurrent access is achieved by acquiring a lock on the cache before addition or retrievals.
 
-`Documentation`
+
+
+Documentation
 ==================
 Documentation can be found on [Godoc](http://godoc.org/github.com/ofonimefrancis/lru)
 
-`Usage`
+Usage
 ================
 
 ```go
