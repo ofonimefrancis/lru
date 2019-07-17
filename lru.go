@@ -8,14 +8,14 @@ import (
 //Cache Represents our LRU Cache
 type Cache struct {
 	mu       sync.Mutex
-	cache    map[string]*list.Element
+	cache    map[interface{}]*list.Element
 	dll      *list.List
 	capacity int
 }
 
 //entry for list.Element Value interface field
 type entry struct {
-	key   string
+	key   interface{}
 	value interface{}
 }
 
@@ -23,13 +23,13 @@ type entry struct {
 func New(maxSize int) *Cache {
 	return &Cache{
 		capacity: maxSize,
-		cache:    make(map[string]*list.Element),
+		cache:    make(map[interface{}]*list.Element),
 		dll:      list.New(),
 	}
 }
 
 //Add - Adds  a new entry to the cache
-func (c *Cache) Add(key string, value interface{}) {
+func (c *Cache) Add(key, value interface{}) {
 	//Before adding, acquire lock
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -49,7 +49,7 @@ func (c *Cache) Add(key string, value interface{}) {
 	}
 }
 
-func (c *Cache) removeLeastUsed() (string, interface{}) {
+func (c *Cache) removeLeastUsed() (key, v interface{}) {
 	el := c.dll.Back()
 	if el == nil {
 		return "", el
@@ -61,7 +61,7 @@ func (c *Cache) removeLeastUsed() (string, interface{}) {
 }
 
 //Get - Retrieves a key from the cache
-func (c *Cache) Get(key string) (interface{}, bool) {
+func (c *Cache) Get(key interface{}) (interface{}, bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -88,22 +88,23 @@ func (c *Cache) Remove(key string) bool {
 
 //Len Returns the length of the items in the cache
 func (c *Cache) Len() int {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	if c.cache == nil {
+		return 0
+	}
 
 	return c.dll.Len()
 }
 
 //contains - Checks for the availability of a key in cache
 //Returns the element and the boolean signifying availability
-func (c *Cache) contains(key string) (*list.Element, bool) {
+func (c *Cache) contains(key interface{}) (*list.Element, bool) {
 	entry, ok := c.cache[key]
 	return entry, ok
 
 }
 
 //Contains - Checks for the availability of a key in cache
-func (c *Cache) Contains(key string) bool {
+func (c *Cache) Contains(key interface{}) bool {
 	_, ok := c.cache[key]
 	return ok
 }
